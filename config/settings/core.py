@@ -1,7 +1,8 @@
 from pathlib import Path
+import os, sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
+sys.path.insert(0, os.path.join(BASE_DIR, 'v1'))
 
 SECRET_KEY = 'django-insecure-feoz%_@@0n*wxd3rp^-zih0%-n7@4woh=vjdp$4z12nay%kc!6'
 
@@ -14,6 +15,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+
+    # local
+    "v1.accounts.apps.AccountsConfig", 
     
 ]
 
@@ -82,5 +86,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
-    
+
 }
