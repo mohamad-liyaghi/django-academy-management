@@ -40,7 +40,7 @@ class User(AbstractUser):
 class Profile(models.Model):
     '''User profile model'''
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="profile")
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
 
     first_name = models.CharField(max_length=120)
@@ -49,7 +49,7 @@ class Profile(models.Model):
     picture = models.ImageField(upload_to="users/pictures", 
                                 validators=[validate_file_size])
 
-    age = models.SmallIntegerField(validators=[
+    age = models.SmallIntegerField(default=1, validators=[
             MaxValueValidator(60),
             MinValueValidator(10)
         ])
@@ -69,7 +69,7 @@ class Profile(models.Model):
 
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.user}"
 
 
 

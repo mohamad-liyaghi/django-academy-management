@@ -5,4 +5,6 @@ from accounts.models import User, Profile
 class UserAdmin(admin.ModelAdmin):
     list_display = ("email", "balance", "role", "token")
 
-admin.site.register(Profile)
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "age", "phone_number", "passport_number")
