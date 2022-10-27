@@ -1,7 +1,8 @@
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 from .viewsets import ListRetrieveUpdateViewSet
-from accounts.serializers import ProfileListSerializer
+from accounts.serializers import ProfileDetailSerializer, ProfileListSerializer
 from accounts.models import Profile
 
 
@@ -16,6 +17,12 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
             return Profile.objects.all()
 
         return Profile.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        if self.request.user.role in ["ad", 'su', 't']:
+            return get_object_or_404(Profile, id=self.kwargs["pk"])
+
+        return get_object_or_404(Profile, id=self.kwargs["pk"], user=self.request.user)
     
     
     def get_serializer_class(self):
@@ -23,4 +30,7 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
 
         if self.action == "list":
             return ProfileListSerializer
+
+        elif self.action in ["retrieve", "update", "partial_update"]:
+            return ProfileDetailSerializer
 
