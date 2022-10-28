@@ -1,5 +1,6 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import filters
 from rest_framework import status
 
 from django.shortcuts import get_object_or_404
@@ -14,6 +15,8 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
 
     queryset = Profile.objects.all()
     permission_classes = [IsAuthenticated,]
+    search_fields = ['user__email', "passport_number"]
+    filter_backends = (filters.SearchFilter,)
 
     def get_queryset(self):
         if self.request.user.role in ["ad", 'su']:
