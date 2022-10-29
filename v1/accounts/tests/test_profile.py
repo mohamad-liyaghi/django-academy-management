@@ -98,3 +98,40 @@ class TestProfile:
         # get 200 response code when checking users profile page
         response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
         assert response.status_code == status.HTTP_200_OK
+    
+
+    def test_update_user_profile(self):
+        '''
+            Anon users cant update profiles.
+            Superuser cant update simple users profile,
+            Simple user can update his own profile.
+        '''
+
+        data = json.dumps({"first_name": "test name"})
+        url = f"/v1/accounts/{self.user.profile.first().id}/"
+
+        # return 403 cuz user is not authenticated
+        response = self.client.patch(url, data=json.dumps({"first_name": "userac"}), 
+        format="json", follow=True)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # login as superuser and get 403 cuz its not superuser's own profile
+        self.client.login(email='superuser@test.com', password='1234TestSuperuser')
+        response = self.client.patch(url, data=data, 
+        content_type='application/json', follow=True)
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # logout and then login with normal user
+        self.client.logout()
+        self.client.login(email='user@test.com', password='1234TestUser')
+        
+        # send request and get 200 cuz its user's own profile
+        response = self.client.patch(url, data=data, 
+        content_type='application/json', follow=True)
+
+        assert self.user.profile.first().first_name == 'test name'
+        assert response.status_code == status.HTTP_200_OK
+
+
