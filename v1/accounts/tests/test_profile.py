@@ -63,3 +63,38 @@ class TestProfile:
         # check if only the user is listed
         assert json.loads((response.content))["count"] == 1
         assert json.loads((response.content))["count"] != 2
+
+
+    def test_get_profile_detail_page(self):
+        '''
+            Anon users can't view profile pages, 
+            Admin users can view everyones profile page,
+            Normal users can just access their own profile pages othervise they get 404.(they dont get 403 for query stuff in views)
+        '''
+
+        # get superuser and simple user's profile id for url stuff
+        user_profile_id = self.user.profile.first().id
+        superuser_profile_id = self.superuser.profile.first().id
+        
+        # anon users get 403 cuz they have to be authenticated
+        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        
+
+        # login as normal user
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # get 200 status from users own profile page
+        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+        # get 404 from superusers profile page
+        response = self.client.get(f"/v1/accounts/{superuser_profile_id}/", follow=True)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        # log out and login as a superuser
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestSuperuser')
+
+        # get 200 response code when checking users profile page
+        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        assert response.status_code == status.HTTP_200_OK
