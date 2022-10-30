@@ -1,5 +1,6 @@
 from rest_framework.test import APIClient
 from rest_framework import status
+from django.urls import reverse
 from accounts.models import User, Profile
 import pytest, json
 
@@ -43,12 +44,12 @@ class TestProfile:
             but simple users can just watch their profile token'''
 
         # unregistered user get 403 cuz this page is login required
-        response = self.client.get("/v1/accounts/")
+        response = self.client.get(reverse("v1:profile-list"))
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # login as superuser and send request
         self.client.login(email='superuser@test.com', password='1234TestSuperuser')
-        response = self.client.get("/v1/accounts/")
+        response = self.client.get(reverse("v1:profile-list"))
         # check if there are 2 users listed (its list of users).
         assert json.loads((response.content))["count"] == 2
         assert json.loads((response.content))["count"] != 1
@@ -58,7 +59,7 @@ class TestProfile:
 
         # login as a normal user and send request
         self.client.login(email='user@test.com', password='1234TestUser')
-        response = self.client.get("/v1/accounts/")
+        response = self.client.get(reverse("v1:profile-list"))
 
         # check if only the user is listed
         assert json.loads((response.content))["count"] == 1
@@ -77,7 +78,7 @@ class TestProfile:
         superuser_profile_id = self.superuser.profile.first().id
         
         # anon users get 403 cuz they have to be authenticated
-        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        response = self.client.get(reverse("v1:profile-detail", kwargs={'pk': user_profile_id}), follow=True)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         
 
@@ -85,18 +86,18 @@ class TestProfile:
         self.client.login(email='user@test.com', password='1234TestUser')
 
         # get 200 status from users own profile page
-        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        response = self.client.get(reverse("v1:profile-detail", kwargs={'pk': user_profile_id}), follow=True)
         assert response.status_code == status.HTTP_200_OK
 
         # get 404 from superusers profile page
-        response = self.client.get(f"/v1/accounts/{superuser_profile_id}/", follow=True)
+        response = self.client.get(reverse("v1:profile-detail", kwargs={'pk': superuser_profile_id}), follow=True)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         # log out and login as a superuser
         self.client.logout()
         self.client.login(email='superuser@test.com', password='1234TestSuperuser')
 
         # get 200 response code when checking users profile page
-        response = self.client.get(f"/v1/accounts/{user_profile_id}", follow=True)
+        response = self.client.get(reverse("v1:profile-detail", kwargs={'pk': user_profile_id}), follow=True)
         assert response.status_code == status.HTTP_200_OK
     
 
@@ -108,7 +109,8 @@ class TestProfile:
         '''
 
         data = json.dumps({"first_name": "test name"})
-        url = f"/v1/accounts/{self.user.profile.first().id}/"
+        print(self.user.profile.first().id)
+        url = reverse("v1:profile-detail", kwargs={'pk': self.user.profile.first().id})
 
         # return 403 cuz user is not authenticated
         response = self.client.patch(url, data=json.dumps({"first_name": "userac"}), 
