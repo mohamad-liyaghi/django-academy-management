@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from accounts.managers import UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+
 import uuid
+
 from .validators import validate_file_size
 
 
@@ -73,3 +75,36 @@ class Profile(models.Model):
 
 
 
+class Request(models.Model):
+    '''A model for requesting to becode teacher or admin'''
+
+    class Role(models.TextChoices):
+        ''''''
+        ADMIN = ("a", "Admin")
+        TEACHER = ("t", "Teacher")
+    
+    class Status(models.TextChoices):
+        '''Request Status'''
+
+        PENDING = ("p", "pending")
+        ACCEPTED = ("a", "Accepted")
+        REJECTED = ("r", "Rejected")
+        BLOCKED = ("b", "Blocked")
+
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="requests")
+    id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True, editable=False)
+    
+    role = models.CharField(max_length=1, choices=Role.choices, default=Role.TEACHER)
+    status = models.CharField(max_length=1, choices=Status.choices, default=Status.PENDING)
+
+    attachment = models.FileField(upload_to="users/requests", 
+                                validators=[validate_file_size], blank=True, null=True)
+    
+    date = models.DateTimeField(auto_now_add=True)
+    
+    description = models.TextField(blank=True)
+
+
+    def __str__(self) -> str:
+        return str(self.id)
