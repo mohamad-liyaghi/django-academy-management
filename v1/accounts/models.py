@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from accounts.managers import UserManager
+from accounts.managers import RequestManager, UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 
 import uuid
@@ -103,8 +103,9 @@ class Request(models.Model):
     
     date = models.DateTimeField(auto_now_add=True)
     
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
 
+    objects = RequestManager()
 
     def __str__(self) -> str:
         return str(self.id)
