@@ -6,13 +6,12 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from .viewsets import CreateListRetrieveUpdateViewSet, ListRetrieveUpdateViewSet
-from accounts.serializers import ProfileDetailSerializer, ProfileListSerializer
+from accounts.serializers import ProfileDetailSerializer, ProfileListSerializer, RequestListSerializer
 from accounts.models import Profile, Request
 
 
 class ProfileViewSet(ListRetrieveUpdateViewSet):
     '''A viewset to `list`, `update` and `retrieve` users profiles. '''
-
     queryset = Profile.objects.all()
     permission_classes = [IsAuthenticated,]
     search_fields = ['user__email', "passport_number"]
@@ -57,3 +56,15 @@ class RequestViewSet(CreateListRetrieveUpdateViewSet):
 
     queryset = Request.objects.all()
     permission_classes = [IsAuthenticated,]
+
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return RequestListSerializer
+
+    
+    def get_queryset(self):
+        if self.request.user.role in ["ad", "su"]:
+            return Request.objects.all().order_by("date")
+
+        return Request.objects.filter(user=self.request.user).order_by("date")
