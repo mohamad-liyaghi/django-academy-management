@@ -5,9 +5,9 @@ from rest_framework import status
 
 from django.shortcuts import get_object_or_404
 
-from .viewsets import ListRetrieveUpdateViewSet
+from .viewsets import CreateListRetrieveUpdateViewSet, ListRetrieveUpdateViewSet
 from accounts.serializers import ProfileDetailSerializer, ProfileListSerializer
-from accounts.models import Profile
+from accounts.models import Profile, Request
 
 
 class ProfileViewSet(ListRetrieveUpdateViewSet):
@@ -32,7 +32,6 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
         return get_object_or_404(Profile, id=self.kwargs["pk"], user=self.request.user)
     
 
-
     def get_serializer_class(self):
         # return appropriate serializer
 
@@ -52,3 +51,9 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
         return Response("You dont have permission to update this profile.", status=status.HTTP_403_FORBIDDEN)
             
 
+
+class RequestViewSet(CreateListRetrieveUpdateViewSet):
+    '''A viewset to ``create`, list`, `update` and `retrieve` users profiles. '''
+
+    queryset = Request.objects.all()
+    permission_classes = [IsAuthenticated,]

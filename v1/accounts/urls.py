@@ -6,7 +6,8 @@ app_name = 'v1'
 
 router = routers.SimpleRouter()
 
-router.register('', views.ProfileViewSet)
+router.register('profile', views.ProfileViewSet)
+router.register('request', views.RequestViewSet, basename="request")
 
 
 urlpatterns = [
