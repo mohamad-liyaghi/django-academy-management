@@ -19,7 +19,7 @@ class TestRequest:
         self.client = APIClient()
 
 
-    def test_profile_list(self):
+    def test_create_request(self):
         '''
             Test for creating requests.
             Anon users can not create requests.
@@ -54,5 +54,41 @@ class TestRequest:
         request = self.client.post(url, data={"role" : "a"}, format="json")
         assert request.status_code == status.HTTP_400_BAD_REQUEST
 
-
+    
+    def test_get_request_list(self):
+        '''
+            Anon users can not access list request page.
+            Normal users can just see their own requests.
+            Suerusers can see all requests.
+        '''
         
+        url = reverse("v1:request-list")
+
+        # return forbidden cuz user is not authenticated
+        request = self.client.get(url)
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # login as normal user
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # create request
+        request = self.client.post(url, data={"role" : "a"}, format="json")
+        assert request.status_code == status.HTTP_201_CREATED
+
+        request = self.client.get(url)
+        # number of requests
+        assert json.loads((request.content))["count"] == 1
+        assert request.status_code == status.HTTP_200_OK
+
+
+        self.client.logout()
+
+        # login as superuser
+        self.client.login(email='superuser@test.com', password='1234TestSuperuser')
+
+        # superuser can see all requests
+        request = self.client.get(url)
+
+        # number of requests
+        assert json.loads((request.content))["count"] == 1
+        assert request.status_code == status.HTTP_200_OK
