@@ -53,7 +53,10 @@ class CreateRequestSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("User is already a teacher.")
     
         if self.context["user"].requests.filter(status='p'):
-            raise serializers.ValidationError("You already have a pending request.")
+            raise serializers.ValidationError("User already has a pending request.")
+        
+        if self.context["user"].requests.filter(status='b'):
+            raise serializers.ValidationError("User is blocked.")
 
         return value
 

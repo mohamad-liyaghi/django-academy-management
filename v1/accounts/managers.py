@@ -43,6 +43,9 @@ class RequestManager(manager.Manager):
 
         if user.role == "t" and kwargs["role"] == "t":
             raise ValueError("Given user is already a teacher")
+        
+        if user.requests.filter(status="b").exists():
+            raise ValueError("User is blocked.")
 
         if user.requests.filter(status="p").exists():
             raise ValueError("You have already a pending request.")
