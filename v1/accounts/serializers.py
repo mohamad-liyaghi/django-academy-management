@@ -73,3 +73,49 @@ class RequestDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ["id", "user", "role", "status", "attachment", "date", "description"]
+
+
+class UpdateRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Request
+        fields = ["role", "status", "attachment", "description"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.context["user"].role in ["su", "ad"]:
+            try:
+
+                self.Meta.fields.remove("role")
+                self.Meta.fields.remove('attachment')
+                self.Meta.fields.remove('description')
+
+            except: pass
+
+        elif self.context["user"].role in ["s", "t"]:
+            try:
+                self.Meta.fields.remove("status")
+
+            except: pass
+
+
+    def update(self, instance, validated_data):
+        '''Update user status if request was accepted'''
+        
+        if instance.status != "p":
+            raise serializers.ValidationError("This case is closed.")
+
+        request = super().update(instance, validated_data)        
+
+        if request.status == "a":
+
+            if request.role == "a":
+                request.user.role = 'ad'
+                request.user.save()
+
+            elif request.role == "t":
+                request.user.role = "t"
+                request.user.save()
+
+        return request         

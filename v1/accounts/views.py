@@ -6,7 +6,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from .viewsets import CreateListRetrieveUpdateViewSet, ListRetrieveUpdateViewSet
-from accounts.serializers import CreateRequestSerializer, ProfileDetailSerializer, ProfileListSerializer, RequestDetailSerializer, RequestListSerializer
+from accounts.serializers import CreateRequestSerializer, ProfileDetailSerializer, ProfileListSerializer, RequestDetailSerializer, RequestListSerializer, UpdateRequestSerializer
 from accounts.models import Profile, Request
 
 
@@ -71,6 +71,9 @@ class RequestViewSet(CreateListRetrieveUpdateViewSet):
         
         elif self.action == "retrieve":
             return RequestDetailSerializer
+        
+        elif self.action in ["update", 'partial_update']:
+            return UpdateRequestSerializer
 
 
     def get_queryset(self):
@@ -84,6 +87,6 @@ class RequestViewSet(CreateListRetrieveUpdateViewSet):
         if self.request.user.role in ["ad", "su"]:
             return super().get_object()
 
-        return get_object_or_404(Request, id=self.kwargs["id"], 
+        return get_object_or_404(Request, id=self.kwargs["pk"], 
                     user= self.request.user)
 
