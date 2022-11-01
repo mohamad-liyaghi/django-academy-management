@@ -64,3 +64,12 @@ class CreateRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.setdefault ("user", self.context["user"])
         return super().create(validated_data)
+
+
+class RequestDetailSerializer(serializers.ModelSerializer):
+
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Request
+        fields = ["id", "user", "role", "status", "attachment", "date", "description"]

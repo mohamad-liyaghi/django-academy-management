@@ -6,7 +6,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from .viewsets import CreateListRetrieveUpdateViewSet, ListRetrieveUpdateViewSet
-from accounts.serializers import CreateRequestSerializer, ProfileDetailSerializer, ProfileListSerializer, RequestListSerializer
+from accounts.serializers import CreateRequestSerializer, ProfileDetailSerializer, ProfileListSerializer, RequestDetailSerializer, RequestListSerializer
 from accounts.models import Profile, Request
 
 
@@ -52,13 +52,15 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
 
 
 class RequestViewSet(CreateListRetrieveUpdateViewSet):
-    '''A viewset to ``create`, list`, `update` and `retrieve` users profiles. '''
+    '''A viewset to `create`, `list`, `update` and `retrieve` users requests. '''
 
     queryset = Request.objects.all()
     permission_classes = [IsAuthenticated,]
 
+
     def get_serializer_context(self):
         return {"user" : self.request.user}
+
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -66,9 +68,22 @@ class RequestViewSet(CreateListRetrieveUpdateViewSet):
 
         elif self.action == "create":
             return CreateRequestSerializer
-    
+        
+        elif self.action == "retrieve":
+            return RequestDetailSerializer
+
+
     def get_queryset(self):
         if self.request.user.role in ["ad", "su"]:
             return Request.objects.all().order_by("date")
 
         return Request.objects.filter(user=self.request.user).order_by("date")
+
+
+    def get_object(self):
+        if self.request.user.role in ["ad", "su"]:
+            return super().get_object()
+
+        return get_object_or_404(Request, id=self.kwargs["id"], 
+                    user= self.request.user)
+
