@@ -92,3 +92,33 @@ class TestRequest:
         # number of requests
         assert json.loads((request.content))["count"] == 1
         assert request.status_code == status.HTTP_200_OK
+
+    
+    def test_block_request(self):
+        '''Block a user's request. so that user can not request anymore'''
+        # login as normal user
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # create request
+        request = self.client.post(reverse("v1:request-list"), data={"role" : "a"}, format="json")
+        assert request.status_code == status.HTTP_201_CREATED
+
+        self.client.logout()
+
+        # login as superuser
+        self.client.login(email='superuser@test.com', password='1234TestSuperuser')
+
+        # block user's request
+        request = self.client.put(reverse("v1:request-detail", kwargs={"pk" : self.user.requests.first().id.hex}),
+        data={"status" : "b"})
+        assert request.status_code == status.HTTP_200_OK
+
+        # login as normal user
+        self.client.logout()
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # get 400 after request cuz user is blocked
+        request = self.client.post(reverse("v1:request-list"), data={"role" : "a"}, format="json")
+        assert request.status_code == status.HTTP_400_BAD_REQUEST
+
+
