@@ -1,7 +1,8 @@
 from pathlib import Path
+import os, sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
+sys.path.insert(0, os.path.join(BASE_DIR, 'v1'))
 
 SECRET_KEY = 'django-insecure-feoz%_@@0n*wxd3rp^-zih0%-n7@4woh=vjdp$4z12nay%kc!6'
 
@@ -14,6 +15,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'djoser',
+    'django_filters',
+
+    # local
+    "v1.accounts.apps.AccountsConfig", 
     
 ]
 
@@ -78,9 +84,25 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
-    
+        'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+
+        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+        'PAGE_SIZE': 30
+
+}
+
+AUTH_USER_MODEL = "accounts.User"
+
+DJOSER = {
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.IsAdminUser'],
+    }
 }
