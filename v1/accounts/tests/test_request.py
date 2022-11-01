@@ -122,3 +122,29 @@ class TestRequest:
         assert request.status_code == status.HTTP_400_BAD_REQUEST
 
 
+    def test_accept_user_request(self):
+        '''Accept users requests and update their role'''
+
+        # login as normal user
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # create request
+        request = self.client.post(reverse("v1:request-list"), data={"role" : "a"}, format="json")
+        assert request.status_code == status.HTTP_201_CREATED
+
+        self.client.logout()
+
+        # login as superuser
+        self.client.login(email='superuser@test.com', password='1234TestSuperuser')
+
+        # accept user's request
+        request = self.client.put(reverse("v1:request-detail", kwargs={"pk" : self.user.requests.first().id.hex}),
+        data={"status" : "a"})
+        assert request.status_code == status.HTTP_200_OK
+
+        # check if request status updated
+        assert json.loads(request.content)["status"]  == "a"
+
+
+
+
