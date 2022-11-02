@@ -109,7 +109,6 @@ class TestProfile:
         '''
 
         data = json.dumps({"first_name": "test name"})
-        print(self.user.profile.first().id)
         url = reverse("v1:profile-detail", kwargs={'pk': self.user.profile.first().id})
 
         # return 403 cuz user is not authenticated
@@ -136,4 +135,14 @@ class TestProfile:
         assert self.user.profile.first().first_name == 'test name'
         assert response.status_code == status.HTTP_200_OK
 
+    
+    def test_get_money(self):
+        '''anon users can not get money but authenticated users get 20 coins per request'''
+
+        response = self.client.get(reverse("v1:get-money"))
+        assert response.status_code == 401
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        response = self.client.get(reverse("v1:get-money"))
+        assert response.status_code == 200
 
