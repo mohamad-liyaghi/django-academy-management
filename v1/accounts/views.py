@@ -2,7 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import status
-
+from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
 
 from .viewsets import CreateListRetrieveUpdateViewSet, ListRetrieveUpdateViewSet
@@ -89,4 +89,19 @@ class RequestViewSet(CreateListRetrieveUpdateViewSet):
 
         return get_object_or_404(Request, id=self.kwargs["pk"], 
                     user= self.request.user)
+
+
+@api_view(["GET"])
+def get_money(request):
+    '''Exchange money endpoint. you should implement payment methods here'''
+
+    if request.user.is_authenticated:
+
+        request.user.balance = request.user.balance + 20
+        request.user.save() 
+        return Response(f"20 coins added to your account balance, your balance: {request.user.balance}", 
+                    status=status.HTTP_200_OK)
+
+    else:
+        return Response("User is not authenticated.", status=status.HTTP_401_UNAUTHORIZED)
 
