@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from accounts.models import User
+from v1.classes.managers import CourseManager
 
 class Course(models.Model):
 
@@ -32,6 +33,8 @@ class Course(models.Model):
         ])
 
     token = models.CharField(unique=True, max_length=15)
+
+    objects = CourseManager()
     
     def __str__(self) -> str:
         return self.title
