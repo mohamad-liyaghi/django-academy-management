@@ -20,6 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path("v1/accounts/", include("v1.accounts.urls")),
+    path("v1/classes/", include('v1.classes.urls')),
 
     # path for debug toolbar
     path('__debug__/', include('debug_toolbar.urls')),

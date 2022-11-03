@@ -20,6 +20,7 @@ INSTALLED_APPS = [
 
     # local
     "v1.accounts.apps.AccountsConfig", 
+    "v1.classes.apps.ClassesConfig",
     
 ]
 
