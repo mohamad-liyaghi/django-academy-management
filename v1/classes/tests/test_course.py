@@ -19,6 +19,18 @@ class TestCourse:
              password="1234TestUser")
 
 
-        self.course = Course.objects.create(title="title", teacher=self.superuser, price="12")
+        self.course = Course.objects.create(title="title", teacher=self.superuser, price="12", published=True)
 
         self.client = APIClient()
+
+
+
+    def test_get_course_list(self):
+        '''Everyone can visit this page and see all published courses.'''
+
+        request = self.client.get(reverse("v1_classes:course-list"))
+
+        assert json.loads((request.content))["count"] == 1
+        assert json.loads((request.content))["count"] != 2
+        assert request.status_code == status.HTTP_200_OK
+
