@@ -24,4 +24,14 @@ class AddCourseSerializer(serializers.ModelSerializer):
             return super().save(teacher=self.context["user"], **kwargs)
 
         raise APIException("User is not allowed to add course")
+
+
+
+class CourseListSerializer(serializers.ModelSerializer):
+
+    teacher = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ["title", "teacher", "price", "difficulty", "token"]
         
