@@ -34,3 +34,29 @@ class TestCourse:
         assert json.loads((request.content))["count"] != 2
         assert request.status_code == status.HTTP_200_OK
 
+
+    def test_add_course(self):
+        '''Anon/Normal users can not add courses but teachers/superuser/admins can.'''
+
+        # anon users can not add course
+        request = self.client.post(reverse("v1_classes:course-list"), data={"title" : "title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # login as normal user
+        self.client.login(email='user@test.com', password='1234TestUser')
+
+        # request and get 403 cuz user is not allowed
+        request = self.client.post(reverse("v1_classes:course-list"), data={"title" : "title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # logout and login as superuser
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser')
+
+        assert self.superuser.courses.count() == 1
+
+        # request and check if its created
+        request = self.client.post(reverse("v1_classes:course-list"), data={"title" : "title", "description" : "description"})
+
+        assert request.status_code == status.HTTP_201_CREATED
+        assert self.superuser.courses.count() == 2
