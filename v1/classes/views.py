@@ -7,11 +7,13 @@ from rest_framework.decorators import action
 
 from classes.models import Course
 from v1.classes.serializers import AddCourseSerializer, CourseListSerializer
+from .permissions import CoursePermission
 
 
 class CourseViewSet(ModelViewSet):
     '''A viewset for Course stuff such as `add`, `list`, `delete`, and so on'''
 
+    permission_classes = [CoursePermission,]
     search_fields = ['title', "price", "difficulty"]
     filter_backends = (filters.SearchFilter,)
 
