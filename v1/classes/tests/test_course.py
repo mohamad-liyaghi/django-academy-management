@@ -60,3 +60,39 @@ class TestCourse:
 
         assert request.status_code == status.HTTP_201_CREATED
         assert self.superuser.courses.count() == 2
+
+    
+    def test_get_course_detail(self):
+        '''
+            Users can see published course details.
+            But course owner can see the course if it is un published.
+        '''
+
+        # create an unpublished course
+        course_2 = Course.objects.create(title="title", teacher=self.superuser, price="12")
+
+        # anon user gets 404 cuz course is not published
+        request = self.client.get(reverse("v1_classes:course-detail", kwargs={"token" : course_2.token}))
+        assert request.status_code == status.HTTP_404_NOT_FOUND
+
+        # anon user can see published course detail page
+        request = self.client.get(reverse("v1_classes:course-detail", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_200_OK
+
+        self.client.login(email='superuser@test.com', password='1234TestUser')
+        # superuser can see the page cuz its his own course
+        request = self.client.get(reverse("v1_classes:course-detail", kwargs={"token" : course_2.token}))
+        assert request.status_code == status.HTTP_200_OK
+
+        self.client.logout()
+        self.client.login(email='user@test.com', password='1234TestUser')
+        
+        # normal user can see superusers unpub course
+        request = self.client.get(reverse("v1_classes:course-detail", kwargs={"token" : course_2.token}))
+        assert request.status_code == status.HTTP_404_NOT_FOUND
+
+        # normal user can see published course page
+        request = self.client.get(reverse("v1_classes:course-detail", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_200_OK
+
+
