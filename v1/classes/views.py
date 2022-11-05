@@ -1,12 +1,12 @@
 from rest_framework.viewsets import ModelViewSet
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
-
+from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from classes.models import Course
-from v1.classes.serializers import AddCourseSerializer, CourseListSerializer
+from v1.classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer
 from .permissions import CoursePermission
 
 
@@ -16,6 +16,7 @@ class CourseViewSet(ModelViewSet):
     permission_classes = [CoursePermission,]
     search_fields = ['title', "price", "difficulty"]
     filter_backends = (filters.SearchFilter,)
+    lookup_field = "token"
 
 
     def get_serializer_context(self):
@@ -35,6 +36,17 @@ class CourseViewSet(ModelViewSet):
 
         return Course.objects.filter(published=True).order_by("-id")
 
+    def get_object(self):
+        query  = get_object_or_404(Course, token=self.kwargs["token"])
+
+        if not query.published:
+
+            if query.teacher == self.request.user:
+                return query
+            raise Http404
+
+        return query
+
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -42,3 +54,6 @@ class CourseViewSet(ModelViewSet):
 
         elif self.action == 'list':
             return CourseListSerializer
+        
+        elif self.action == "retrieve":
+            return CourseDetailSerializer

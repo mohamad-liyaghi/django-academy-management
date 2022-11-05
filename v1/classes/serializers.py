@@ -35,3 +35,16 @@ class CourseListSerializer(serializers.ModelSerializer):
         model = Course
         fields = ["title", "teacher", "price", "difficulty", "token"]
         
+
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+
+    lookup_field = "token"
+    teacher = serializers.StringRelatedField()
+    # TODO: add a field in order to see if this course is purchased or not
+
+    class Meta:
+        model = Course
+        fields = ["title", "teacher", "price", "difficulty",
+                        "time", "description", "published", "token"]
+    
