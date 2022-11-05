@@ -23,6 +23,16 @@ class CourseViewSet(ModelViewSet):
 
 
     def get_queryset(self):
+        '''If user is authenticated it will return users courses + all courses.
+            otherwise it returns course list.'''
+
+        if self.request.user.is_authenticated:
+            all_courses = Course.objects.filter(published=True)
+            user_courses = Course.objects.filter(teacher=self.request.user)
+            # combine 2 queries
+            mixed_query = user_courses | all_courses
+            return mixed_query.order_by("-id")
+
         return Course.objects.filter(published=True).order_by("-id")
 
 
