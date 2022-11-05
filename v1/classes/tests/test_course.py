@@ -96,3 +96,29 @@ class TestCourse:
         assert request.status_code == status.HTTP_200_OK
 
 
+    def test_update_course(self):
+        '''
+            Anon users can not update courses.
+            Only course teachers can update their own courses.
+        '''
+        
+        # anon user gets 403
+        request = self.client.patch(reverse("v1_classes:course-detail", kwargs={"token" : self.course.token}), 
+                data={"title" : "new title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # normal user gets 403
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.patch(reverse("v1_classes:course-detail", kwargs={"token" : self.course.token}), 
+                data={"title" : "new title"})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser')
+
+        # course owner gets 200
+        request = self.client.patch(reverse("v1_classes:course-detail", kwargs={"token" : self.course.token}), 
+                data={"title" : "new title"}, format="json")
+
+        assert request.status_code == status.HTTP_200_OK
