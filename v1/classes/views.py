@@ -4,6 +4,8 @@ from rest_framework import filters
 from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework import status
+
 
 from classes.models import Course
 from v1.classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer
@@ -36,6 +38,7 @@ class CourseViewSet(ModelViewSet):
 
         return Course.objects.filter(published=True).order_by("-id")
 
+
     def get_object(self):
         query  = get_object_or_404(Course, token=self.kwargs["token"])
 
@@ -55,5 +58,15 @@ class CourseViewSet(ModelViewSet):
         elif self.action == 'list':
             return CourseListSerializer
         
-        elif self.action == "retrieve":
+        elif self.action in ["retrieve", "update", "partial_update"]:
             return CourseDetailSerializer
+
+
+    def update(self, request, *args, **kwargs):
+        '''only teacher can update the course'''
+
+        if self.get_object().teacher == self.request.user:
+            return super().update(request, *args, **kwargs)
+
+        else:
+            return Response("You are not allowed to update this object", status=status.HTTP_403_FORBIDDEN)

@@ -41,6 +41,8 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     lookup_field = "token"
     teacher = serializers.StringRelatedField()
+    token = serializers.CharField(read_only=True)
+    published = serializers.BooleanField(read_only=True)
     # TODO: add a field in order to see if this course is purchased or not
 
     class Meta:
