@@ -122,3 +122,26 @@ class TestCourse:
                 data={"title" : "new title"}, format="json")
 
         assert request.status_code == status.HTTP_200_OK
+
+    
+    def test_publish_course(self):
+        '''
+            Only course owner can publish and un publish the course
+        '''
+        # create a couse
+        course = Course.objects.create(title="title", teacher=self.superuser, price="12")
+
+        # request as anon user and get 403
+        request = self.client.post(reverse("v1_classes:course-publish-course", kwargs={"token" : course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+        
+        # request as normal user and get 403 cuz permission denied
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.post(reverse("v1_classes:course-publish-course", kwargs={"token" : course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+        
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser')
+        # request as superuser and get 200 cuz user is courses teacher
+        request = self.client.post(reverse("v1_classes:course-publish-course", kwargs={"token" : course.token}))
+        assert request.status_code == status.HTTP_200_OK
