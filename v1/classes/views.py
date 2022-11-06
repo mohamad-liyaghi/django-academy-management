@@ -74,7 +74,7 @@ class CourseViewSet(ModelViewSet):
             return Response("You are not allowed to update this object", status=status.HTTP_403_FORBIDDEN)
 
     
-    @action(detail=True, methods=["GET", "POST"], url_path="publish", url_name="publish-course")
+    @action(detail=True, methods=["GET", "POST"], url_path="publish")
     def publish_course(self, request, token):
         object = get_object_or_404(Course, token=token, teacher=request.user)
 
@@ -95,7 +95,7 @@ class CourseViewSet(ModelViewSet):
 
 
             else:
-                object.published = False
+                object.published = True
                 object.save()
                 return Response("Course published!.", status=status.HTTP_200_OK)
             
