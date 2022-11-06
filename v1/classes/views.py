@@ -8,7 +8,7 @@ from rest_framework import status
 
 
 from classes.models import Course
-from v1.classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer
+from v1.classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, CoursePublishSerializer
 from .permissions import CoursePermission
 
 
@@ -60,7 +60,9 @@ class CourseViewSet(ModelViewSet):
         
         elif self.action in ["retrieve", "update", "partial_update"]:
             return CourseDetailSerializer
-
+        
+        elif self.action == "publish_course":
+            return CoursePublishSerializer
 
     def update(self, request, *args, **kwargs):
         '''only teacher can update the course'''
@@ -70,3 +72,32 @@ class CourseViewSet(ModelViewSet):
 
         else:
             return Response("You are not allowed to update this object", status=status.HTTP_403_FORBIDDEN)
+
+    
+    @action(detail=True, methods=["GET", "POST"], url_path="publish", url_name="publish-course")
+    def publish_course(self, request, token):
+        object = get_object_or_404(Course, token=token, teacher=request.user)
+
+        if request.method == "GET":
+            if object.published:
+                return Response("Course is published. post to un punlish.", status=status.HTTP_200_OK)
+
+            return Response("Course is unpublished. post to publish.", status=status.HTTP_200_OK)
+            
+            
+        elif request.method == "POST":
+
+            if object.published:
+                # TODO add payment condition
+                object.published = False
+                object.save()
+                return Response("Course unpublished!.", status=status.HTTP_200_OK)
+
+
+            else:
+                object.published = False
+                object.save()
+                return Response("Course published!.", status=status.HTTP_200_OK)
+            
+                       
+ 

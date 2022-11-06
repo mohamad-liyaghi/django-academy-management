@@ -49,4 +49,9 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         model = Course
         fields = ["title", "teacher", "price", "difficulty",
                         "time", "description", "published", "token"]
-    
+
+
+class CoursePublishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course 
+        fields = []
