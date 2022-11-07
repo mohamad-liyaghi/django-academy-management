@@ -1,7 +1,12 @@
 from django.contrib import admin
-from classes.models import Course
+from classes.models import Course, Payment
 
 
 @admin.register(Course)
-class Course(admin.ModelAdmin):
+class CourseAdmin(admin.ModelAdmin):
     list_display = ["title", 'price', 'teacher', 'published']
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ["user", "course", "amount", "date"]

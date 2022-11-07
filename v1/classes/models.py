@@ -38,3 +38,30 @@ class Course(models.Model):
     
     def __str__(self) -> str:
         return self.title
+
+
+
+class Payment(models.Model):
+    '''
+        Course payment model.
+        ** : the reason that related name is student, is related to counting a course purchases.
+    '''
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, 
+                                related_name="students")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, 
+                                    related_name="payments")
+
+    amount = models.IntegerField(default=0, validators=[
+            MaxValueValidator(5000),
+            MinValueValidator(10)
+        ])
+
+    date = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(unique=True, max_length=15)
+
+
+    def __str__(self) -> str:
+        return str(self.token)
+
