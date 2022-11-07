@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from accounts.models import User
-from v1.classes.managers import CourseManager
+from v1.classes.managers import CourseManager, PaymentManager
 
 class Course(models.Model):
 
@@ -61,7 +61,7 @@ class Payment(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     token = models.CharField(unique=True, max_length=15)
 
-
+    objects = PaymentManager()
     def __str__(self) -> str:
         return str(self.token)
 
