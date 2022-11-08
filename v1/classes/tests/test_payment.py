@@ -8,7 +8,7 @@ import pytest, json
 
 @pytest.mark.django_db
 class TestPayment:
-    def setup(self):
+     def setup(self):
         '''Create 2 users, one course and one payment.'''
         
         self.user = User.objects.create_user(email="user1@test.com",
@@ -22,3 +22,33 @@ class TestPayment:
         self.payment = Payment.objects.create(user=self.user, course=self.course)
 
         self.client = APIClient()
+     
+
+     def test_payment_list(self):
+          '''
+               Anon user gets 403 cuz this api is login required.
+               Normal users can only see their transactions (in this test user has 1 transaction)
+               Admin users can see all transactions.
+          '''
+
+          # request as anon user
+          request = self.client.get(reverse("v1_classes:payment-list"))
+          assert request.status_code == status.HTTP_403_FORBIDDEN
+
+          # login as a normal user and see only 1 record
+          self.client.login(email='user1@test.com', password='1234TestUser')
+          request = self.client.get(reverse("v1_classes:payment-list"))
+          assert request.status_code == status.HTTP_200_OK
+
+          assert json.loads((request.content))["count"] != 0
+          assert json.loads((request.content))["count"] == 1
+
+          self.client.logout()
+          self.client.login(email='superuser@test.com', password='1234TestUser')
+          
+          # superuser can see simple users records/
+          request = self.client.get(reverse("v1_classes:payment-list"))
+          assert request.status_code == status.HTTP_200_OK
+
+          assert json.loads((request.content))["count"] != 0
+          assert json.loads((request.content))["count"] == 1
