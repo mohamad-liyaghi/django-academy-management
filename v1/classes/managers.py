@@ -40,13 +40,13 @@ class PaymentManager(manager.Manager):
         if user == course.teacher:
             raise ValueError("Teachers can not buy their own courses.")
 
-        if user.balance < course.price:
+        if int(user.balance) < int(course.price):
             raise ValueError("User dont have enough money.")
 
-        payment = self.model(token=random.randint(1, 999999999999999), amount=course.price, **kwargs)
-        user.balance = user.balance - course.price
+        payment = self.model(token=random.randint(1, 999999999999999), amount=int(course.price), **kwargs)
+        user.balance = int(user.balance) - int(course.price)
 
-        course.teacher.balance = course.teacher.balance + course.price
+        course.teacher.balance = course.teacher.balance + int(course.price)
         
         user.save()    
         course.teacher.save()
