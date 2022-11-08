@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from classes.models import Course
+from classes.models import Course, Payment
 
 
 class AddCourseSerializer(serializers.ModelSerializer):
@@ -55,3 +55,10 @@ class CoursePublishSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course 
         fields = []
+
+
+class PaymentListSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Payment
+        fields = ["token", "amount", "date"]

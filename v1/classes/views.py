@@ -9,7 +9,8 @@ from rest_framework import status
 
 
 from classes.models import Course, Payment
-from classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, CoursePublishSerializer
+from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
+                                    CoursePublishSerializer, PaymentListSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -107,4 +108,17 @@ class PaymentViewSet(ListRetrieveViewSet):
     '''A viewset to purchase a course and see transaction `list` and `detail`.'''
 
     permission_classes = [IsAuthenticated,]
-    queryset = Payment.objects.all()
+
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PaymentListSerializer
+    
+
+    def get_queryset(self):
+        '''Admins can see new transactions but normal users can onlu see their transactions.'''
+        
+        if self.request.user.role in ["su", "ad"]:
+            return Payment.objects.all().order_by("-date")
+
+        return Payment.objects.filter(user=self.request.user).order_by("-date")
