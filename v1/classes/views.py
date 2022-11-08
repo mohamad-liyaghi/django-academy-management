@@ -2,14 +2,16 @@ from rest_framework.viewsets import ModelViewSet
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
 from django.http import Http404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
 
-from classes.models import Course
-from v1.classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, CoursePublishSerializer
+from classes.models import Course, Payment
+from classes.serializers import AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, CoursePublishSerializer
 from .permissions import CoursePermission
+from .viewsets import ListRetrieveViewSet
 
 
 class CourseViewSet(ModelViewSet):
@@ -101,3 +103,8 @@ class CourseViewSet(ModelViewSet):
             
                        
  
+class PaymentViewSet(ListRetrieveViewSet):
+    '''A viewset to purchase a course and see transaction `list` and `detail`.'''
+
+    permission_classes = [IsAuthenticated,]
+    queryset = Payment.objects.all()
