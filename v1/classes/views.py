@@ -10,7 +10,7 @@ from rest_framework import status
 
 from classes.models import Course, Payment
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
-                                    CoursePublishSerializer, PaymentListSerializer)
+                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -108,11 +108,14 @@ class PaymentViewSet(ListRetrieveViewSet):
     '''A viewset to purchase a course and see transaction `list` and `detail`.'''
 
     permission_classes = [IsAuthenticated,]
-
+    lookup_field = "token"
 
     def get_serializer_class(self):
         if self.action == "list":
             return PaymentListSerializer
+
+        elif self.action == "retrieve":
+            return PaymentDetailSerializer
     
 
     def get_queryset(self):
@@ -122,3 +125,11 @@ class PaymentViewSet(ListRetrieveViewSet):
             return Payment.objects.all().order_by("-date")
 
         return Payment.objects.filter(user=self.request.user).order_by("-date")
+    
+
+    def get_object(self):
+        if self.request.user.role in ["su", "ad"]:
+            return super().get_object()
+        
+        return get_object_or_404(Payment, token=self.kwargs["token"], 
+                                user=self.request.user)

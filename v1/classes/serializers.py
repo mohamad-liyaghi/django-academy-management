@@ -62,3 +62,13 @@ class PaymentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ["token", "amount", "date"]
+
+
+class PaymentDetailSerializer(serializers.ModelSerializer):
+
+    course = serializers.StringRelatedField()
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Payment
+        fields = ["token", "course", "user", "amount", "date"]
