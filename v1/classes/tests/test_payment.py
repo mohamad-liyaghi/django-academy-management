@@ -73,3 +73,32 @@ class TestPayment:
 
           request = self.client.get(reverse("v1_classes:payment-detail", kwargs={"token" : self.payment.token}))
           assert request.status_code == status.HTTP_200_OK
+
+     def test_purchase_course(self):
+          '''
+               Anon users can not purchase items.
+               Course provider can not purchase his own item.
+               Users that have purchased an item can not do that again.
+          '''
+          # anon user gets 403
+          request = self.client.post(reverse("v1_classes:course-purchase-course", kwargs={"token" : self.course.token}))
+          assert request.status_code == status.HTTP_403_FORBIDDEN
+          
+          # get 400 cuz superuser is the course provider
+          self.client.login(email='superuser@test.com', password='1234TestUser')
+          request = self.client.post(reverse("v1_classes:course-purchase-course", kwargs={"token" : self.course.token}))
+          assert request.status_code == status.HTTP_400_BAD_REQUEST
+
+          self.client.logout()
+          self.client.login(email='user1@test.com', password='1234TestUser')
+          # get 400 cuz item is already purchased
+          request = self.client.post(reverse("v1_classes:course-purchase-course", kwargs={"token" : self.course.token}))
+          assert request.status_code == status.HTTP_400_BAD_REQUEST
+
+          User.objects.create_user(email="user2@test.com",password="1234TestUser", balance=200)
+
+          self.client.logout()
+          self.client.login(email='user2@test.com', password='1234TestUser')
+          # get success
+          request = self.client.post(reverse("v1_classes:course-purchase-course", kwargs={"token" : self.course.token}))
+          assert request.status_code == status.HTTP_200_OK

@@ -106,7 +106,7 @@ class CourseViewSet(ModelViewSet):
                 return Response("Course published!.", status=status.HTTP_200_OK)
 
 
-    @action(detail=True, methods=["GET", "POST"], url_path="pay")
+    @action(detail=True, methods=["GET", "POST"], url_path="pay", permission_classes=[IsAuthenticated,])
     def purchase_course(self, request, token):
         object = get_object_or_404(Course, token=token, published=True)
 
