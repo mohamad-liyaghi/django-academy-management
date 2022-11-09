@@ -72,3 +72,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ["token", "course", "user", "amount", "date"]
+    
+
+class PurchaseCourseSerializer(CoursePublishSerializer):
+    pass

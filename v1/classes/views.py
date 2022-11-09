@@ -10,7 +10,7 @@ from rest_framework import status
 
 from classes.models import Course, Payment
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
-                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer)
+                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer, PurchaseCourseSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -66,6 +66,9 @@ class CourseViewSet(ModelViewSet):
         
         elif self.action == "publish_course":
             return CoursePublishSerializer
+        
+        elif self.action == "purchase_course":
+            return PurchaseCourseSerializer
 
     def update(self, request, *args, **kwargs):
         '''only teacher can update the course'''
@@ -101,6 +104,35 @@ class CourseViewSet(ModelViewSet):
                 object.published = True
                 object.save()
                 return Response("Course published!.", status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=["GET", "POST"], url_path="pay")
+    def purchase_course(self, request, token):
+        object = get_object_or_404(Course, token=token, published=True)
+
+        if request.method == "GET":
+            return Response(f"Course price is {object.price}, if  you want to purchase, post this url.", 
+                                status=status.HTTP_200_OK)
+        
+        elif request.method == "POST":
+            if object.teacher == request.user:
+                return Response("You cant buy your own course.",
+                                     status=status.HTTP_400_BAD_REQUEST)
+
+            if object.students.filter(user=self.request.user, course=object):
+                return Response("You have already purchased this item.",
+                                     status=status.HTTP_400_BAD_REQUEST)
+
+            if int(request.user.balance) < int(object.price):
+                return Response("You dont have enough money to purchase this course.",
+                                     status=status.HTTP_400_BAD_REQUEST)
+
+            Payment.objects.create(user=self.request.user, course=object)
+            # costing stuff will be executed after we create payment record.
+            return Response("You have successfully purchased this course.", 
+                            status=status.HTTP_200_OK)
+
+
             
                        
  
