@@ -52,3 +52,24 @@ class TestPayment:
 
           assert json.loads((request.content))["count"] != 0
           assert json.loads((request.content))["count"] == 1
+
+
+     def test_payment_detail(self):
+          '''
+               Anon users can not access payment detail page.
+               Admins can see all detail pages.
+               Normal users can see their own payment detail pages.
+          '''
+          
+          request = self.client.get(reverse("v1_classes:payment-detail", kwargs={"token" : self.payment.token}))
+          assert request.status_code == status.HTTP_403_FORBIDDEN
+
+          self.client.login(email='superuser@test.com', password='1234TestUser')
+          request = self.client.get(reverse("v1_classes:payment-detail", kwargs={"token" : self.payment.token}))
+          assert request.status_code == status.HTTP_200_OK
+
+          self.client.logout()
+          self.client.login(email='user1@test.com', password='1234TestUser')
+
+          request = self.client.get(reverse("v1_classes:payment-detail", kwargs={"token" : self.payment.token}))
+          assert request.status_code == status.HTTP_200_OK
