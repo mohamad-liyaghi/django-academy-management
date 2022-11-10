@@ -43,12 +43,30 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     teacher = serializers.StringRelatedField()
     token = serializers.CharField(read_only=True)
     published = serializers.BooleanField(read_only=True)
-    # TODO: add a field in order to see if this course is purchased or not
+
+    purchases = serializers.SerializerMethodField(method_name='calculate_purchases', read_only=True )
+    is_purchased = serializers.SerializerMethodField(method_name="check_item_purchased", read_only=True)
+
+    def calculate_purchases(self, course:Course):
+        '''Calculate all purchases'''
+        return Payment.objects.filter(course=course).count()
+    
+    
+    def check_item_purchased(self, course:Course):
+        '''Check if user purchased the item or not'''
+        user = self.context["user"]
+        
+        if user.is_authenticated:
+            return Payment.objects.filter(user=user, course=course).exists()
+
+        return False
+
+    
 
     class Meta:
         model = Course
         fields = ["title", "teacher", "price", "difficulty",
-                        "time", "description", "published", "token"]
+                        "time", "description", "published", "token", "purchases", "is_purchased"]
 
 
 class CoursePublishSerializer(serializers.ModelSerializer):
