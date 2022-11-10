@@ -86,7 +86,7 @@ class CourseViewSet(ModelViewSet):
 
         if request.method == "GET":
             if object.published:
-                return Response("Course is published. post to un punlish.", status=status.HTTP_200_OK)
+                return Response("Course is published. post to unpublish.", status=status.HTTP_200_OK)
 
             return Response("Course is unpublished. post to publish.", status=status.HTTP_200_OK)
             
@@ -94,7 +94,9 @@ class CourseViewSet(ModelViewSet):
         elif request.method == "POST":
 
             if object.published:
-                # TODO add payment condition
+                if object.students.count() > 0:
+                    return Response("Course is in use by students.", status=status.HTTP_400_BAD_REQUEST)
+                    
                 object.published = False
                 object.save()
                 return Response("Course unpublished!.", status=status.HTTP_200_OK)
