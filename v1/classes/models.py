@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from accounts.models import User
-from v1.classes.managers import CourseManager, PaymentManager
+from v1.classes.managers import CourseManager, PaymentManager, SessionManager
 from accounts.validators import validate_file_size
 
 class Course(models.Model):
@@ -88,6 +88,7 @@ class Session(models.Model):
     token = models.CharField(unique=True, max_length=20)
     time = models.DateTimeField(auto_now_add=True)
 
+    objects = SessionManager()
 
     def __str__(self) -> str:
         return f"{self.title} | {self.course}"
