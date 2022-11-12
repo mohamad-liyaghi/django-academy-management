@@ -10,7 +10,8 @@ from rest_framework import status
 
 from classes.models import Course, Payment
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
-                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer, PurchaseCourseSerializer)
+                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
+                                     PurchaseCourseSerializer, SessionListSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -69,6 +70,9 @@ class CourseViewSet(ModelViewSet):
         
         elif self.action == "purchase_course":
             return PurchaseCourseSerializer
+        
+        elif self.action == 'sessions' and self.request.method == "GET":
+            return SessionListSerializer
 
     def update(self, request, *args, **kwargs):
         '''only teacher can update the course'''
@@ -134,7 +138,20 @@ class CourseViewSet(ModelViewSet):
             return Response("You have successfully purchased this course.", 
                             status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["GET"], url_path="sessions",
+                             permission_classes=[IsAuthenticated,], )
+    def session(self, request, token):
+        object = self.get_object()
 
+        if request.method == "GET":
+
+            if object.students.filter(user=self.request.user, course=object) \
+                or object.teacher == request.user :
+                serializer = SessionListSerializer(object.sessions.all(), many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response("You have to purchase this item.", status=status.HTTP_403_FORBIDDEN)
+        
             
                        
  

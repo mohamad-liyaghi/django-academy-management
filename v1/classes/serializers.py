@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from classes.models import Course, Payment
+from classes.models import Course, Payment, Session
 
 
 class AddCourseSerializer(serializers.ModelSerializer):
@@ -60,7 +60,6 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             return Payment.objects.filter(user=user, course=course).exists()
 
         return False
-
     
 
     class Meta:
@@ -94,3 +93,10 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
 
 class PurchaseCourseSerializer(CoursePublishSerializer):
     pass
+
+
+class SessionListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Session
+        fields = ["number", "title", "token", "time"]
