@@ -161,13 +161,13 @@ class CourseViewSet(ModelViewSet):
             # only admin can add link
             if request.user == object.teacher:
                 data = SessionCreateSerializer(data=request.POST)
-                video = request.data['video']
-                attachment = request.data['attachment']
+                video = request.data.get('video')
+                attachment = request.data.get('attachment')
 
                 if data.is_valid():
                     data.save(course=object, video=video, attachment=attachment)
                     return Response(data.data, status=status.HTTP_201_CREATED)
-                
+
                 return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response("only teachers can add sessions.", status=status.HTTP_403_FORBIDDEN)

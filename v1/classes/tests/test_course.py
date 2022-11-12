@@ -164,3 +164,37 @@ class TestCourse:
         self.client.login(email='superuser@test.com', password='1234TestUser') 
         request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
         assert request.status_code == status.HTTP_200_OK
+    
+
+    def test_add_session(self):
+        '''
+            Anon users can not add sessions.
+            Normal users can not add sessions.
+            Teachers can add sessions to their own courses.
+        '''
+        # anon user gets 403
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # normal users get 403
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        # if data is invalid we will get 400 bad request
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}))
+
+        assert request.status_code == status.HTTP_400_BAD_REQUEST
+        
+        # if data if ok, session will be created
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_201_CREATED
