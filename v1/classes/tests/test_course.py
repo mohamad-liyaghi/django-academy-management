@@ -2,7 +2,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from accounts.models import User
-from classes.models import Course
+from classes.models import Course, Payment
 import pytest, json
 
 
@@ -13,7 +13,7 @@ class TestCourse:
         '''Create 2 users and a course'''
         
         self.user = User.objects.create_user(email="user1@test.com",
-             password="1234TestUser")
+             password="1234TestUser", balance=200)
 
         self.superuser = User.objects.create_superuser(email="superuser@test.com",
              password="1234TestUser")
@@ -144,4 +144,23 @@ class TestCourse:
         self.client.login(email='superuser@test.com', password='1234TestUser')
         # request as superuser and get 200 cuz user is courses teacher
         request = self.client.post(reverse("v1_classes:course-publish-course", kwargs={"token" : course.token}))
+        assert request.status_code == status.HTTP_200_OK
+
+    
+    def test_get_course_sessions(self):
+        '''
+            Anon users get 403.
+            Users who hasnt purchased the course get 403.
+            Course owner and teacher gets 200.
+        '''
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
         assert request.status_code == status.HTTP_200_OK
