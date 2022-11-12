@@ -11,7 +11,7 @@ from rest_framework import status
 from classes.models import Course, Payment
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
                                     CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
-                                     PurchaseCourseSerializer, SessionListSerializer)
+                                     PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -56,6 +56,7 @@ class CourseViewSet(ModelViewSet):
 
 
     def get_serializer_class(self):
+        print(self.action)
         if self.action == "create":
             return AddCourseSerializer
 
@@ -71,8 +72,12 @@ class CourseViewSet(ModelViewSet):
         elif self.action == "purchase_course":
             return PurchaseCourseSerializer
         
-        elif self.action == 'sessions' and self.request.method == "GET":
+        elif self.action == 'session' and self.request.method == "GET":
             return SessionListSerializer
+        
+        elif self.action == 'session' and self.request.method == "POST":
+            return SessionCreateSerializer
+
 
     def update(self, request, *args, **kwargs):
         '''only teacher can update the course'''
@@ -138,8 +143,7 @@ class CourseViewSet(ModelViewSet):
             return Response("You have successfully purchased this course.", 
                             status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["GET"], url_path="sessions",
-                             permission_classes=[IsAuthenticated,], )
+    @action(detail=True, methods=["GET", "POST"], url_path="sessions", permission_classes=[IsAuthenticated,], )
     def session(self, request, token):
         object = self.get_object()
 
@@ -151,6 +155,23 @@ class CourseViewSet(ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
             return Response("You have to purchase this item.", status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == "POST":
+            
+            # only admin can add link
+            if request.user == object.teacher:
+                data = SessionCreateSerializer(data=request.POST)
+                video = request.data['video']
+                attachment = request.data['attachment']
+
+                if data.is_valid():
+                    data.save(course=object, video=video, attachment=attachment)
+                    return Response(data.data, status=status.HTTP_201_CREATED)
+                
+                return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response("only teachers can add sessions.", status=status.HTTP_403_FORBIDDEN)
+
         
             
                        

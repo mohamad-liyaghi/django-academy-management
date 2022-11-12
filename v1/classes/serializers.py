@@ -100,3 +100,14 @@ class SessionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
         fields = ["number", "title", "token", "time"]
+
+
+
+class SessionCreateSerializer(serializers.ModelSerializer):
+
+    number = serializers.CharField(read_only=True)
+    token = serializers.CharField(read_only=True)
+    
+    class Meta:
+        model = Session
+        fields = ["number", "title", "description", "video", "attachment", "token"]
