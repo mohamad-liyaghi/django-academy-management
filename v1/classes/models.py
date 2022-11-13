@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from accounts.models import User
-from v1.classes.managers import CourseManager, PaymentManager
+from v1.classes.managers import CourseManager, PaymentManager, SessionManager
+from accounts.validators import validate_file_size
 
 class Course(models.Model):
 
@@ -65,3 +66,29 @@ class Payment(models.Model):
     def __str__(self) -> str:
         return str(self.token)
 
+
+
+
+class Session(models.Model):
+
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+
+    number = models.PositiveIntegerField(default=0)
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, 
+                                related_name="sessions")
+
+    video = models.FileField(upload_to="classes/videos", 
+                                blank=True, null=True)
+
+    attachment = models.FileField(upload_to="classes/attachment", 
+                                validators=[validate_file_size], blank=True, null=True)
+
+    token = models.CharField(unique=True, max_length=20)
+    time = models.DateTimeField(auto_now_add=True)
+
+    objects = SessionManager()
+
+    def __str__(self) -> str:
+        return f"{self.title} | {self.course}"

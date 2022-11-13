@@ -2,7 +2,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from accounts.models import User
-from classes.models import Course
+from classes.models import Course, Session
 import pytest, json
 
 
@@ -13,13 +13,14 @@ class TestCourse:
         '''Create 2 users and a course'''
         
         self.user = User.objects.create_user(email="user1@test.com",
-             password="1234TestUser")
+             password="1234TestUser", balance=200)
 
         self.superuser = User.objects.create_superuser(email="superuser@test.com",
              password="1234TestUser")
 
 
         self.course = Course.objects.create(title="title", teacher=self.superuser, price="12", published=True)
+        self.session = Session.objects.create(course=self.course, title="Test session")
 
         self.client = APIClient()
 
@@ -145,3 +146,107 @@ class TestCourse:
         # request as superuser and get 200 cuz user is courses teacher
         request = self.client.post(reverse("v1_classes:course-publish-course", kwargs={"token" : course.token}))
         assert request.status_code == status.HTTP_200_OK
+
+    
+    def test_get_course_sessions(self):
+        '''
+            Anon users get 403.
+            Users who hasnt purchased the course get 403.
+            Course owner and teacher gets 200.
+        '''
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        request = self.client.get(reverse("v1_classes:course-session", kwargs={"token" : self.course.token}))
+        assert request.status_code == status.HTTP_200_OK
+    
+
+    def test_add_session(self):
+        '''
+            Anon users can not add sessions.
+            Normal users can not add sessions.
+            Teachers can add sessions to their own courses.
+        '''
+        # anon user gets 403
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        # normal users get 403
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        # if data is invalid we will get 400 bad request
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}))
+
+        assert request.status_code == status.HTTP_400_BAD_REQUEST
+        
+        # if data if ok, session will be created
+        request = self.client.post(reverse("v1_classes:course-session",
+                                             kwargs={"token" : self.course.token}), data={"title" : "test"})
+
+        assert request.status_code == status.HTTP_201_CREATED
+
+    
+    def test_session_detail(self):
+        '''
+            Anon users can not access this page.
+            Users who hasnt purchased, can not access this page.
+            Course teacher and people who has purchased this item, can access this page.
+        '''
+
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_200_OK
+
+
+    def test_update_session(self):
+        '''
+            Anon users and students can not update the course detail
+            only course detail can.
+        '''
+        
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+        assert request.status_code == status.HTTP_201_CREATED

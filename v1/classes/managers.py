@@ -54,3 +54,25 @@ class PaymentManager(manager.Manager):
 
         return payment
 
+
+
+class SessionManager(manager.Manager):
+    def create(self, **kwargs):
+        
+        course = kwargs["course"]
+
+        try:
+            kwargs["description"]
+        except:
+            kwargs.setdefault('description', "No description available.")
+
+
+        if course.sessions.count() != 0:
+            number = int(course.sessions.last().number)
+            kwargs.setdefault("number", number + 1)
+
+
+        session = self.model(token=random.randint(1, 99999999999999999999), **kwargs)
+        session.save()
+
+        return session

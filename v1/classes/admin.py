@@ -1,5 +1,5 @@
 from django.contrib import admin
-from classes.models import Course, Payment
+from classes.models import Course, Payment, Session
 
 
 @admin.register(Course)
@@ -10,3 +10,8 @@ class CourseAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ["user", "course", "amount", "date"]
+
+
+@admin.register(Session)
+class SessionAdmin(admin.ModelAdmin):
+    list_display = ["number", "course", "time"]

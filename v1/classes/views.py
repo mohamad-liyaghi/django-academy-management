@@ -10,7 +10,8 @@ from rest_framework import status
 
 from classes.models import Course, Payment
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
-                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer, PurchaseCourseSerializer)
+                                    CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
+                                     PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer, SessionDetailSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -69,6 +70,16 @@ class CourseViewSet(ModelViewSet):
         
         elif self.action == "purchase_course":
             return PurchaseCourseSerializer
+        
+        elif self.action == 'session' and self.request.method == "GET":
+            return SessionListSerializer
+        
+        elif self.action == 'session' and self.request.method == "POST":
+            return SessionCreateSerializer
+        
+        elif self.action == "session_detail":
+            return SessionDetailSerializer
+
 
     def update(self, request, *args, **kwargs):
         '''only teacher can update the course'''
@@ -134,9 +145,67 @@ class CourseViewSet(ModelViewSet):
             return Response("You have successfully purchased this course.", 
                             status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["GET", "POST"], url_path="sessions", permission_classes=[IsAuthenticated,], )
+    def session(self, request, token):
+        object = self.get_object()
 
+        if request.method == "GET":
+
+            if object.students.filter(user=self.request.user, course=object) \
+                or object.teacher == request.user :
+                serializer = SessionListSerializer(object.sessions.all(), many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response("You have to purchase this item.", status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == "POST":
             
-                       
+            # only admin can add link
+            if request.user == object.teacher:
+                data = SessionCreateSerializer(data=request.POST)
+                video = request.data.get('video')
+                attachment = request.data.get('attachment')
+
+                if data.is_valid():
+                    data.save(course=object, video=video, attachment=attachment)
+                    return Response(data.data, status=status.HTTP_201_CREATED)
+
+                return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response("only teachers can add sessions.", status=status.HTTP_403_FORBIDDEN)
+
+
+    @action(detail=True, methods=["GET", "PUT", "PATCH"], url_path="sessions/(?P<session_token>[^/.]+)", 
+                            permission_classes=[IsAuthenticated,])
+    def session_detail(self, request, token, session_token):
+        object = self.get_object()
+
+        if request.method == "GET":
+            # check if user has access (purchased or is teacher)
+            if object.students.filter(user=self.request.user, course=object) \
+                or object.teacher == request.user :
+
+                session = get_object_or_404(object.sessions, token=session_token, course=object)
+                serializer = SessionDetailSerializer(session)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response("You have to purchase this item.", status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method in ["PATCH", "PUT"]:
+            
+            # check if teacher is going to update
+            if request.user == object.teacher:
+                serializer = SessionDetailSerializer(data=request.data, partial=True)
+
+                if serializer.is_valid():
+                    serializer.save(course=object)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                
+                return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
+                             
  
 class PaymentViewSet(ListRetrieveViewSet):
     '''A viewset to purchase a course and see transaction `list` and `detail`.'''
