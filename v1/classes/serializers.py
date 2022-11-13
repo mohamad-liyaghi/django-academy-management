@@ -115,6 +115,7 @@ class SessionCreateSerializer(serializers.ModelSerializer):
 
 
 class SessionDetailSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(read_only=True)
 
     class Meta:
         model = Session

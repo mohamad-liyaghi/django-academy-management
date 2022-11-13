@@ -56,7 +56,6 @@ class CourseViewSet(ModelViewSet):
 
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action == "create":
             return AddCourseSerializer
 
@@ -78,7 +77,7 @@ class CourseViewSet(ModelViewSet):
         elif self.action == 'session' and self.request.method == "POST":
             return SessionCreateSerializer
         
-        elif self.action == "session-detail":
+        elif self.action == "session_detail":
             return SessionDetailSerializer
 
 
@@ -176,14 +175,16 @@ class CourseViewSet(ModelViewSet):
             return Response("only teachers can add sessions.", status=status.HTTP_403_FORBIDDEN)
 
 
-    @action(detail=True, methods=["GET"], url_path="sessions/(?P<session_token>[^/.]+)", 
+    @action(detail=True, methods=["GET", "PUT", "PATCH"], url_path="sessions/(?P<session_token>[^/.]+)", 
                             permission_classes=[IsAuthenticated,])
     def session_detail(self, request, token, session_token):
         object = self.get_object()
 
         if request.method == "GET":
+            # check if user has access (purchased or is teacher)
             if object.students.filter(user=self.request.user, course=object) \
                 or object.teacher == request.user :
+
                 session = get_object_or_404(object.sessions, token=session_token, course=object)
                 serializer = SessionDetailSerializer(session)
 
@@ -191,9 +192,20 @@ class CourseViewSet(ModelViewSet):
 
             return Response("You have to purchase this item.", status=status.HTTP_403_FORBIDDEN)
 
-        
+        elif request.method in ["PATCH", "PUT"]:
             
-                       
+            # check if teacher is going to update
+            if request.user == object.teacher:
+                serializer = SessionDetailSerializer(data=request.data, partial=True)
+
+                if serializer.is_valid():
+                    serializer.save(course=object)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                
+                return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
+                             
  
 class PaymentViewSet(ListRetrieveViewSet):
     '''A viewset to purchase a course and see transaction `list` and `detail`.'''
