@@ -207,7 +207,7 @@ class TestCourse:
             Users who hasnt purchased, can not access this page.
             Course teacher and people who has purchased this item, can access this page.
         '''
-        
+
         request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
             "session_token" : self.session.token}))
 
@@ -225,3 +225,28 @@ class TestCourse:
             "session_token" : self.session.token}))
 
         assert request.status_code == status.HTTP_200_OK
+
+
+    def test_update_session(self):
+        '''
+            Anon users and students can not update the course detail
+            only course detail can.
+        '''
+        
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}), data={"number" : 1})
+        assert request.status_code == status.HTTP_201_CREATED
