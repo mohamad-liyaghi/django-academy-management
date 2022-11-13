@@ -2,7 +2,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from accounts.models import User
-from classes.models import Course, Payment
+from classes.models import Course, Session
 import pytest, json
 
 
@@ -20,6 +20,7 @@ class TestCourse:
 
 
         self.course = Course.objects.create(title="title", teacher=self.superuser, price="12", published=True)
+        self.session = Session.objects.create(course=self.course, title="Test session")
 
         self.client = APIClient()
 
@@ -198,3 +199,29 @@ class TestCourse:
                                              kwargs={"token" : self.course.token}), data={"title" : "test"})
 
         assert request.status_code == status.HTTP_201_CREATED
+
+    
+    def test_session_detail(self):
+        '''
+            Anon users can not access this page.
+            Users who hasnt purchased, can not access this page.
+            Course teacher and people who has purchased this item, can access this page.
+        '''
+        
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+        request = self.client.get(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_200_OK
