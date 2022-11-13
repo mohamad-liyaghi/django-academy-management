@@ -46,6 +46,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     purchases = serializers.SerializerMethodField(method_name='calculate_purchases', read_only=True )
     is_purchased = serializers.SerializerMethodField(method_name="check_item_purchased", read_only=True)
+    # TODO: session counter
 
     def calculate_purchases(self, course:Course):
         '''Calculate all purchases'''
@@ -108,6 +109,13 @@ class SessionCreateSerializer(serializers.ModelSerializer):
     number = serializers.CharField(read_only=True)
     token = serializers.CharField(read_only=True)
     
+    class Meta:
+        model = Session
+        fields = ["number", "title", "description", "video", "attachment", "token"]
+
+
+class SessionDetailSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Session
         fields = ["number", "title", "description", "video", "attachment", "token"]
