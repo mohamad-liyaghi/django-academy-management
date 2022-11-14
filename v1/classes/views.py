@@ -175,7 +175,7 @@ class CourseViewSet(ModelViewSet):
             return Response("only teachers can add sessions.", status=status.HTTP_403_FORBIDDEN)
 
 
-    @action(detail=True, methods=["GET", "PUT", "PATCH"], url_path="sessions/(?P<session_token>[^/.]+)", 
+    @action(detail=True, methods=["GET", "PUT", "PATCH", "DELETE"], url_path="sessions/(?P<session_token>[^/.]+)", 
                             permission_classes=[IsAuthenticated,])
     def session_detail(self, request, token, session_token):
         object = self.get_object()
@@ -205,6 +205,16 @@ class CourseViewSet(ModelViewSet):
                 return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
 
             return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == "DELETE":
+
+            if request.user == object.teacher:
+                session = get_object_or_404(object.sessions, token=session_token, course=object)
+                session.delete()
+                return Response("Session deleted.", status=status.HTTP_200_OK)
+
+            return Response("You are not allowed to delete this session.", status=status.HTTP_403_FORBIDDEN)
+
                              
  
 class PaymentViewSet(ListRetrieveViewSet):
