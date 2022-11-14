@@ -230,7 +230,7 @@ class TestCourse:
     def test_update_session(self):
         '''
             Anon users and students can not update the course detail
-            only course detail can.
+            only course teacher can.
         '''
         
         request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
@@ -250,3 +250,25 @@ class TestCourse:
         request = self.client.patch(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
             "session_token" : self.session.token}), data={"number" : 1})
         assert request.status_code == status.HTTP_201_CREATED
+
+
+    def test_delete_session(self):
+        '''Only course teacher can del sessions.'''
+        
+        request = self.client.delete(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.delete(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.delete(reverse("v1_classes:course-session-detail", kwargs={"token" : self.course.token, 
+            "session_token" : self.session.token}))
+        assert request.status_code == status.HTTP_200_OK
