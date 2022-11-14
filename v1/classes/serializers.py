@@ -46,7 +46,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     purchases = serializers.SerializerMethodField(method_name='calculate_purchases', read_only=True )
     is_purchased = serializers.SerializerMethodField(method_name="check_item_purchased", read_only=True)
-    # TODO: session counter
+    sessions = serializers.SerializerMethodField(method_name="session_count", read_only=True)
 
     def calculate_purchases(self, course:Course):
         '''Calculate all purchases'''
@@ -62,11 +62,14 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
         return False
     
+    def session_count(self, course=Course):
+        return course.sessions.count()
+    
 
     class Meta:
         model = Course
         fields = ["title", "teacher", "price", "difficulty",
-                        "time", "description", "published", "token", "purchases", "is_purchased"]
+                        "time", "description", "published", "token", "purchases", "is_purchased", "sessions"]
 
 
 class CoursePublishSerializer(serializers.ModelSerializer):
