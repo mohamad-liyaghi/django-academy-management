@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+
+  backend:
+
+    build: .
+    command:  ./docker-entrypoint.sh
+
+    container_name: backend
+    restart: on-failure
+
+    ports:
+      - 8000:8000
+
+    volumes:
+      - .:/backend
+    
+  
+
