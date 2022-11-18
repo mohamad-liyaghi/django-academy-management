@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'django_filters',
+    'drf_spectacular',
 
     # local
     "v1.accounts.apps.AccountsConfig", 
@@ -92,7 +93,9 @@ REST_FRAMEWORK = {
         'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 
         'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-        'PAGE_SIZE': 30
+        'PAGE_SIZE': 30,
+
+        'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
 }
 
@@ -102,4 +105,11 @@ DJOSER = {
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.IsAdminUser'],
     }
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Academy Management system API',
+    'DESCRIPTION': 'A Full system for managing your academy.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
