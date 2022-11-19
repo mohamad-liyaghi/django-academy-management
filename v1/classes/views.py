@@ -17,7 +17,12 @@ from .viewsets import ListRetrieveViewSet
 
 
 class CourseViewSet(ModelViewSet):
-    '''A viewset for Course stuff such as `add`, `list`, `delete`, and so on'''
+    '''
+        General: 
+            get: list of all courses
+            post: add a post
+            get <id>: course detail page
+    '''
 
     permission_classes = [CoursePermission,]
     search_fields = ['title', "price", "difficulty"]
@@ -82,7 +87,7 @@ class CourseViewSet(ModelViewSet):
 
 
     def update(self, request, *args, **kwargs):
-        '''only teacher can update the course'''
+        '''Update a course. Only course owners can update.'''
 
         if self.get_object().teacher == self.request.user:
             return super().update(request, *args, **kwargs)
@@ -93,6 +98,7 @@ class CourseViewSet(ModelViewSet):
     
     @action(detail=True, methods=["GET", "POST"], url_path="publish")
     def publish_course(self, request, token):
+        '''Publish a course.'''
         object = get_object_or_404(Course, token=token, teacher=request.user)
 
         if request.method == "GET":
@@ -121,6 +127,7 @@ class CourseViewSet(ModelViewSet):
 
     @action(detail=True, methods=["GET", "POST"], url_path="pay", permission_classes=[IsAuthenticated,])
     def purchase_course(self, request, token):
+        '''Buy a course'''
         object = get_object_or_404(Course, token=token, published=True)
 
         if request.method == "GET":
@@ -147,6 +154,7 @@ class CourseViewSet(ModelViewSet):
 
     @action(detail=True, methods=["GET", "POST"], url_path="sessions", permission_classes=[IsAuthenticated,], )
     def session(self, request, token):
+        '''List of sessions of a course.'''
         object = self.get_object()
 
         if request.method == "GET":
@@ -178,6 +186,7 @@ class CourseViewSet(ModelViewSet):
     @action(detail=True, methods=["GET", "PUT", "PATCH", "DELETE"], url_path="sessions/(?P<session_token>[^/.]+)", 
                             permission_classes=[IsAuthenticated,])
     def session_detail(self, request, token, session_token):
+        '''Session detail page.'''
         object = self.get_object()
 
         if request.method == "GET":

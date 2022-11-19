@@ -8,4 +8,10 @@ class ListRetrieveViewSet(mixins.ListModelMixin,
     """
     A viewset that provides `retrieve`, `update`, and `list` actions.
     """
-    pass
+    def list(self, request, *args, **kwargs):
+        '''Superuser can see list of all purchases but normal users can see only their transactions.'''
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        '''A payment records detail page'''
+        return super().retrieve(request, *args, **kwargs)

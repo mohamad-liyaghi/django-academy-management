@@ -42,7 +42,7 @@ class ProfileViewSet(ListRetrieveUpdateViewSet):
 
 
     def update(self, request, *args, **kwargs):
-        '''Dont let others to update a users profile'''
+        '''Update a profile. Only profile owner can update.'''
 
         if self.request.user == self.get_object().user:
             return super().update(request, *args, **kwargs)
