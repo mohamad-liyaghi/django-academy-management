@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 from rest_framework import filters
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
@@ -255,3 +256,13 @@ class PaymentViewSet(ListRetrieveViewSet):
         
         return get_object_or_404(Payment, token=self.kwargs["token"], 
                                 user=self.request.user)
+
+
+
+def home(request):
+    '''View for Root url'''
+
+    return HttpResponse('''
+        Welcome to Django academy management API. 
+        Docs: <a href= "/v1/docs/">Click me.</a>
+    ''')

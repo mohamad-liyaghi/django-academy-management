@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from v1.classes.views import home
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
+    path('', home),
     path('admin/', admin.site.urls),
 
     path("v1/accounts/", include("v1.accounts.urls")),
