@@ -92,3 +92,20 @@ class Session(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} | {self.course}"
+
+
+
+class Broadcast(models.Model):
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="broadcast")
+
+    title = models.CharField(max_length=200)
+    body = models.TextField(blank=True, null=True)
+
+    date = models.DateTimeField(auto_now_add=True)
+    is_edited = models.BooleanField(default=False)
+
+    token = models.CharField(max_length=15)
+
+    def __str__(self) -> str:
+        return self.title
