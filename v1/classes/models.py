@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from accounts.models import User
-from v1.classes.managers import CourseManager, PaymentManager, SessionManager
+from v1.classes.managers import CourseManager, PaymentManager, SessionManager, BroadcastManager
 from accounts.validators import validate_file_size
 
 class Course(models.Model):
@@ -106,6 +106,8 @@ class Broadcast(models.Model):
     is_edited = models.BooleanField(default=False)
 
     token = models.CharField(max_length=15)
+
+    objects = BroadcastManager()
 
     def __str__(self) -> str:
         return self.title

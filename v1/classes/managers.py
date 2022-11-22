@@ -76,3 +76,16 @@ class SessionManager(manager.Manager):
         session.save()
 
         return session
+
+class BroadcastManager(manager.Manager):
+    def create(self, **kwargs):
+        
+        try:
+            kwargs["body"]
+        except:
+            kwargs.setdefault('body', "No body message available.")
+
+        message = self.model(token=random.randint(1, 999999999999999), **kwargs)
+        message.save()
+        
+        return message
