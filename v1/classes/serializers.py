@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from classes.models import Course, Payment, Session
+from classes.models import Course, Payment, Session, Broadcast
 
 
 class AddCourseSerializer(serializers.ModelSerializer):
@@ -123,3 +123,10 @@ class SessionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
         fields = ["number", "title", "description", "video", "attachment", "token"]
+
+
+class BroadcastListSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Broadcast
+        fields = ["title", "date", "token"]

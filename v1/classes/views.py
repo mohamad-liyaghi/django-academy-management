@@ -9,10 +9,11 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 
-from classes.models import Course, Payment
+from classes.models import Course, Payment, Broadcast
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
                                     CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
-                                     PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer, SessionDetailSerializer)
+                                     PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer, 
+                                     SessionDetailSerializer, BroadcastListSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -225,6 +226,23 @@ class CourseViewSet(ModelViewSet):
 
             return Response("You are not allowed to delete this session.", status=status.HTTP_403_FORBIDDEN)
 
+    @action(detail=True, methods=["GET"], url_path="broadcast", 
+                                        permission_classes=[IsAuthenticated,], )
+    def broadcast(self, request, token):
+        object = self.get_object()
+
+        if request.method == "GET":
+            '''List of all course broadcasts'''
+            
+            if object.students.filter(user=self.request.user, course=object) \
+                or object.teacher == request.user: 
+                
+                broadcasts = Broadcast.objects.filter(course=object).order_by("-date")
+                serializer = BroadcastListSerializer(broadcasts, many=True)
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response("You are not allowed to access this page.", status=status.HTTP_403_FORBIDDEN)
                              
  
 class PaymentViewSet(ListRetrieveViewSet):
