@@ -296,3 +296,26 @@ class TestCourse:
 
         request = self.client.get(reverse('v1_classes:course-broadcast', kwargs={"token" : self.course.token}))
         assert request.status_code == status.HTTP_200_OK
+
+        
+    def test_add_broadcast(self):
+        '''
+            Only course teachers can add broadcast
+        '''
+
+        request = self.client.post(reverse('v1_classes:course-broadcast', kwargs={"token" : self.course.token}),
+            data={"title": "test title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.login(email='user@test.com', password='1234TestUser')
+        request = self.client.post(reverse('v1_classes:course-broadcast', kwargs={"token" : self.course.token}),
+            data={"title": "test title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        # superuser is the course teacher so it gets 201
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.post(reverse('v1_classes:course-broadcast', kwargs={"token" : self.course.token}),
+            data={"title": "test title"})
+        assert request.status_code == status.HTTP_201_CREATED
