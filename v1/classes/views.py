@@ -13,7 +13,7 @@ from classes.models import Course, Payment, Broadcast
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
                                     CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
                                      PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer, 
-                                     SessionDetailSerializer, BroadcastListSerializer)
+                                     SessionDetailSerializer, BroadcastListSerializer, AddBroadcastSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -86,6 +86,12 @@ class CourseViewSet(ModelViewSet):
         
         elif self.action == "session_detail":
             return SessionDetailSerializer
+        
+        elif self.action == "broadcast" and self.request.method == "GET":
+            return BroadcastListSerializer
+        
+        elif self.action == "broadcast" and self.request.method == "POST":
+            return AddBroadcastSerializer
 
 
     def update(self, request, *args, **kwargs):
@@ -226,7 +232,7 @@ class CourseViewSet(ModelViewSet):
 
             return Response("You are not allowed to delete this session.", status=status.HTTP_403_FORBIDDEN)
 
-    @action(detail=True, methods=["GET"], url_path="broadcast", 
+    @action(detail=True, methods=["GET", "POST"], url_path="broadcast", 
                                         permission_classes=[IsAuthenticated,], )
     def broadcast(self, request, token):
         object = self.get_object()
@@ -243,6 +249,16 @@ class CourseViewSet(ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
             return Response("You are not allowed to access this page.", status=status.HTTP_403_FORBIDDEN)
+
+        if request.method == "POST":
+            if object.teacher == request.user:
+                serializer = AddBroadcastSerializer(data=request.data)
+
+                if serializer.is_valid():
+                    serializer.save(course=object)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response("Only course teacher can add broadcast.", status=status.HTTP_403_FORBIDDEN)
                              
  
 class PaymentViewSet(ListRetrieveViewSet):

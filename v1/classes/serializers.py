@@ -130,3 +130,11 @@ class BroadcastListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Broadcast
         fields = ["title", "date", "token"]
+
+
+class AddBroadcastSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Broadcast
+        fields = ["title", "body", "token"]
