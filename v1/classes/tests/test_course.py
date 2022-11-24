@@ -319,3 +319,29 @@ class TestCourse:
         request = self.client.post(reverse('v1_classes:course-broadcast', kwargs={"token" : self.course.token}),
             data={"title": "test title"})
         assert request.status_code == status.HTTP_201_CREATED
+    
+        
+    def test_course_detail(self):
+        '''
+            Anon users get 403
+            User who didnt buy course get 403
+            Teacher and students get 200
+        '''
+
+        request = self.client.get(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        
+        self.client.login(email='user@test.com', password='1234TestUser')
+        
+        request = self.client.get(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.get(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_200_OK
