@@ -13,7 +13,8 @@ from classes.models import Course, Payment, Broadcast
 from classes.serializers import (AddCourseSerializer, CourseListSerializer, CourseDetailSerializer, 
                                     CoursePublishSerializer, PaymentListSerializer, PaymentDetailSerializer,
                                      PurchaseCourseSerializer, SessionListSerializer, SessionCreateSerializer, 
-                                     SessionDetailSerializer, BroadcastListSerializer, AddBroadcastSerializer)
+                                     SessionDetailSerializer, BroadcastListSerializer, AddBroadcastSerializer, 
+                                     BroadcastDetailSerializer)
 from .permissions import CoursePermission
 from .viewsets import ListRetrieveViewSet
 
@@ -259,6 +260,22 @@ class CourseViewSet(ModelViewSet):
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
             return Response("Only course teacher can add broadcast.", status=status.HTTP_403_FORBIDDEN)
+    
+    @action(detail=True, methods=["GET"], url_path="broadcast/(?P<broadcast_token>[^/.]+)", 
+                                        permission_classes=[IsAuthenticated,], )
+    def broadcast_detail(self, request, token, broadcast_token):
+
+        object = self.get_object()
+
+        if request.method == "GET":
+            if object.students.filter(user=self.request.user, course=object) \
+                or object.teacher == request.user:  
+                broadcast = get_object_or_404(Broadcast, token=broadcast_token, course=object)
+                serializer = BroadcastDetailSerializer(broadcast)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response("You are not allowed to access this page.")
+        
                              
  
 class PaymentViewSet(ListRetrieveViewSet):

@@ -138,3 +138,15 @@ class AddBroadcastSerializer(serializers.ModelSerializer):
     class Meta:
         model = Broadcast
         fields = ["title", "body", "token"]
+
+
+class BroadcastDetailSerializer(serializers.ModelSerializer):
+
+    token = serializers.CharField(read_only=True)
+    date = serializers.DateTimeField(read_only=True)
+    is_edited = serializers.BooleanField(read_only=True)
+    course = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Broadcast
+        fields = ["title", "body", "token", "date", "course", "is_edited"]
