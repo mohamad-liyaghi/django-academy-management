@@ -94,6 +94,9 @@ class CourseViewSet(ModelViewSet):
         elif self.action == "broadcast" and self.request.method == "POST":
             return AddBroadcastSerializer
 
+        elif self.action == "broadcast_detail":
+            return BroadcastDetailSerializer
+
 
     def update(self, request, *args, **kwargs):
         '''Update a course. Only course owners can update.'''
@@ -261,7 +264,7 @@ class CourseViewSet(ModelViewSet):
 
             return Response("Only course teacher can add broadcast.", status=status.HTTP_403_FORBIDDEN)
     
-    @action(detail=True, methods=["GET"], url_path="broadcast/(?P<broadcast_token>[^/.]+)", 
+    @action(detail=True, methods=["GET", "PUT", "PATCH"], url_path="broadcast/(?P<broadcast_token>[^/.]+)", 
                                         permission_classes=[IsAuthenticated,], )
     def broadcast_detail(self, request, token, broadcast_token):
 
@@ -275,6 +278,21 @@ class CourseViewSet(ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
             return Response("You are not allowed to access this page.")
+
+        elif request.method in ["PATCH", "PUT"]:
+            
+            # check if teacher is going to update
+            if request.user == object.teacher:
+                broadcast = get_object_or_404(Broadcast, token=broadcast_token, course=object)
+                serializer = BroadcastDetailSerializer(broadcast, data=request.data, partial=True)
+
+                if serializer.is_valid():
+                    serializer.save(course=object, is_edited=True)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                
+                return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
         
                              
  
