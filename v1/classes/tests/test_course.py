@@ -321,7 +321,7 @@ class TestCourse:
         assert request.status_code == status.HTTP_201_CREATED
     
         
-    def test_course_detail(self):
+    def test_broadcast_detail(self):
         '''
             Anon users get 403
             User who didnt buy course get 403
@@ -345,3 +345,33 @@ class TestCourse:
         request = self.client.get(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
             "broadcast_token" : self.broadcast.token}))
         assert request.status_code == status.HTTP_200_OK
+
+        
+    def test_update_broadcast(self):
+        '''
+            Anon users get 403
+            Teacher gets 200
+        '''
+
+        request = self.client.patch(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}), data={"title" : "new title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        
+        self.client.login(email='user@test.com', password='1234TestUser')
+        
+        request = self.client.patch(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}), data={"title" : "new title"})
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.patch(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}), data={"title" : "new title"})
+        assert request.status_code == status.HTTP_201_CREATED
+        
+        # teacher can not update the object with invalid data.
+        request = self.client.patch(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}), data={"title" : ""})
+        assert request.status_code == status.HTTP_400_BAD_REQUEST

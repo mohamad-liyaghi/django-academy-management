@@ -223,7 +223,7 @@ class CourseViewSet(ModelViewSet):
                     serializer.save(course=object)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 
-                return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
 
@@ -290,7 +290,7 @@ class CourseViewSet(ModelViewSet):
                     serializer.save(course=object, is_edited=True)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 
-                return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
         
