@@ -264,7 +264,7 @@ class CourseViewSet(ModelViewSet):
 
             return Response("Only course teacher can add broadcast.", status=status.HTTP_403_FORBIDDEN)
     
-    @action(detail=True, methods=["GET", "PUT", "PATCH"], url_path="broadcast/(?P<broadcast_token>[^/.]+)", 
+    @action(detail=True, methods=["GET", "PUT", "PATCH", "DELETE"], url_path="broadcast/(?P<broadcast_token>[^/.]+)", 
                                         permission_classes=[IsAuthenticated,], )
     def broadcast_detail(self, request, token, broadcast_token):
 
@@ -293,8 +293,16 @@ class CourseViewSet(ModelViewSet):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response("You are not allowed to update this page.", status=status.HTTP_403_FORBIDDEN)
+
+        elif request.method == "DELETE":
+            if request.user == object.teacher:
+                broadcast = get_object_or_404(Broadcast, token=broadcast_token, course=object)
+                broadcast.delete()
+                return Response("Broadcast deleted.", status=status.HTTP_200_OK)
+
+            return Response("You are not allowed to delete this item.", status=status.HTTP_403_FORBIDDEN)
+
         
-                             
  
 class PaymentViewSet(ListRetrieveViewSet):
     '''A viewset to purchase a course and see transaction `list` and `detail`.'''
