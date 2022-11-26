@@ -375,3 +375,28 @@ class TestCourse:
         request = self.client.patch(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
             "broadcast_token" : self.broadcast.token}), data={"title" : ""})
         assert request.status_code == status.HTTP_400_BAD_REQUEST
+
+        
+    def test_delete_broadcast(self):
+        '''
+            Only teachers can delete a broadcast
+        '''
+
+        request = self.client.delete(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        
+        self.client.login(email='user@test.com', password='1234TestUser')
+        
+        request = self.client.delete(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_403_FORBIDDEN
+
+        self.client.logout()
+        self.client.login(email='superuser@test.com', password='1234TestUser') 
+
+        request = self.client.delete(reverse('v1_classes:course-broadcast-detail', kwargs={"token" : self.course.token, 
+            "broadcast_token" : self.broadcast.token}))
+        assert request.status_code == status.HTTP_200_OK
+        
