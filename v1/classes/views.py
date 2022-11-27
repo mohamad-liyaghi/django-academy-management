@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
+from  rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from rest_framework import filters
@@ -343,3 +344,28 @@ def home(request):
         Welcome to Django academy management API. 
         Docs: <a href= "/v1/docs/">Click me.</a>
     ''')
+
+
+        
+class LatestBroadcast(APIView):
+    '''List of latest broadcasts.'''
+
+    permission_classes = [IsAuthenticated,]
+    serializer_class = BroadcastListSerializer
+    
+    def get(self, request):
+        '''Superusers will see all lates broadcsats but normal users
+            Just see the purchased items broadcast.
+        '''
+
+        if request.user.role in ["su", "ad"]:
+            broadcasts = Broadcast.objects.all().order_by("-date")
+            serializer = self.serializer_class(broadcasts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
+        else:
+            user_courses = request.user.payments.all()
+            broadcasts = Broadcast.objects.filter(course__students__in=user_courses).order_by("-date")
+            serializer = self.serializer_class(broadcasts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)

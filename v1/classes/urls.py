@@ -11,6 +11,8 @@ router.register('course', views.CourseViewSet, basename="course")
 router.register("payment", views.PaymentViewSet, basename="payment")
 
 
-urlpatterns = []
+urlpatterns = [
+    path("broadcast/", views.LatestBroadcast.as_view(), name="broadcast")
+]
 
 urlpatterns += router.urls
