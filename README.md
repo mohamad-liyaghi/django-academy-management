@@ -31,7 +31,7 @@ As it is obvious from repo's name, this project is an academy management system 
 
 ### Accounts
 
-<p> 
+<p>
     This project is using <a href="https://djoser.readthedocs.io/en/latest/">Djoser</a> for authentication purposes like registering and creating jwt token. <br><br>
     Also there is a profile viewset implemented in this application that helps users to update and examine their profiles. By default profiles will be created after a user creates an account (Using signals).<br><br>
     Alongside Profile viewset, there is a Request viewset too. <br><br>
@@ -52,10 +52,10 @@ As it is obvious from repo's name, this project is an academy management system 
 <p>For accessing code, you should clone this project.</p>
 
 ```commandline
-> git clone https://github.com/Ml06py/django-academy-management.git
+> git clone https://github.com/mohamad-liyaghi/django-academy-management.git
 ```
 
-### Step 2 
+### Step 2
 <p>This project is dockerised. Thanks to docker, you can start this project with one simple command.</p>
 
 ```
